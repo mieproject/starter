@@ -5,9 +5,9 @@
     "keywords": [
         "framework",
         "laravel",
-        'mie',
-        'mieproject',
-        'starter'
+        "mie",
+        "mieproject",
+        "starter"
     ],
     "license": "MIT",
     "require": {
