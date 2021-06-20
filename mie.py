@@ -16,7 +16,7 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--project-name', '-n', help="project name", required=True)
 parser.add_argument('--project-path', help="project path", required=False,default='~/mieprojects')
 parser.add_argument('--type', '-t', help="project type [web,api has also web]", type= str,default="web")
-parser.add_argument('--auth', help="'y' if you need auth in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
+# parser.add_argument('--auth', help="'y' if you need auth in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
 parser.add_argument('--run-npm', help="'y' if you need to run `npm install && npm run dev` in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
 # parser.add_argument('--packages','-p', help="all wanted packages separated by comma,", type= str)
 parser.add_argument('--modules','-m', help="all wanted modules separated by comma,", type= str,default="settings")
@@ -70,7 +70,7 @@ def main():
 def install_packages():
   # check if this project need auth system
   # if(args.auth == 'y'):
-  if(True):
+  if(False): # no need becuse of `settings` module
       subprocess.call(precmd+"composer require laravel/breeze --dev && php artisan breeze:install vue", shell=True)
       if(args.run_npm == 'y'):
         subprocess.call(precmd+"npm install && npm run dev", shell=True)
@@ -84,7 +84,7 @@ def install_packages():
         subprocess.call(precmd+"composer require mieproject/{} dev-master".format(module_name), shell=True) # todo: remove  dev-master
         mie_helpers.parse_mierun_file(module_name,precmd)
       else:
-          mie_helpers._err('module "'+module_name+'" not exist')
+          mie_helpers._err('module "{}" not exist'.format(module_name))
           
 
   # packages_names = (args.packages).split(",")

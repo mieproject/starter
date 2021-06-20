@@ -9,7 +9,7 @@ def parse_mierun_file(module,precmd):
     _info('start mierun file for module: '+module)
     for line in file.text.splitlines():
       #yellow
-      print(colored('\r\n[mierun@module: {}]$ \r'.format(module),'yellow'))
+      print(colored('\r\n[mierun@module:{}]${} \r'.format(module,line),'yellow'))
       subprocess.call(precmd+line, shell=True)
   else:
     _info('mierun file not exist for module: '+module)
