@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import argparse, sys, re
+import argparse, sys, re, requests
 from datetime import datetime
 from colorama import init
 from termcolor import colored
@@ -32,6 +32,8 @@ def string_time():
 
 def _info(s):
   print(colored('\r\n'+s+'\r','white','on_blue'))
+def _err(s):
+  print(colored('\r\n'+s+'\r','white','on_red'))
 def make_safe_filename(s):
     def safe_char(c):
         if c.isalnum() or c=='.':
@@ -59,14 +61,16 @@ def make_safe_filename(s):
 
     
 # project init
+projects_path = '~/mieprojects'
+
 pname = args.project_name
-pfolder = make_safe_filename(pname)
+pfolder = projects_path+'/'+make_safe_filename(pname)
 # pfolder = (pname)
 # cd to project 
 precmd = "cd "+pfolder+" && "
 
     
-def main():  
+def main(): 
     # info:
     print(colored("- Project Name:"+pfolder, 'blue'))
     print(colored("- Project type:"+args.type, 'blue'))
@@ -74,13 +78,16 @@ def main():
     
     
     _info('['+string_time()+'] create new laravel project')
-    subprocess.call('composer create-project laravel/laravel "'+pfolder+'"', shell=True)
+    subprocess.call('composer create-project laravel/laravel '+pfolder+'', shell=True)
     subprocess.call(precmd+"composer install ", shell=True)
     _info('start `install_packages`')
     install_packages()
     
 
-      
+
+    if(subprocess.call(['which','xdg-open']) == 0):
+      subprocess.call('xdg-open '+pfolder,shell=True)
+    #end main    
     #subprocess.call(precmd+"php artisan serv &&", shell=True) 
 
 def install_packages():
@@ -93,8 +100,12 @@ def install_packages():
   if(args.modules != ''):
     modules_names = (args.modules).split(",")
     for module_name in modules_names:
-      _info('['+string_time()+'] create new laravel project')
-      subprocess.call(precmd+"composer require mieproject/"+ module_name, shell=True)
+      _info('['+string_time()+'] install module:'+ module_name)
+      if(requests.get("https://packagist.org/packages/mieproject/"+module_name, allow_redirects=False).status_code == 200):
+        subprocess.call(precmd+"composer require mieproject/"+ module_name, shell=True)
+      else:
+          _err('module "'+module_name+'" not exist')
+          
 
   # packages_names = (args.packages).split(",")
   # print(packages_names)
