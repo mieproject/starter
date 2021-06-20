@@ -1,6 +1,19 @@
+import requests,subprocess
 from datetime import datetime
 from termcolor import colored
 
+def parse_mierun_file(module,precmd):
+  mierun_file = 'https://raw.githubusercontent.com/mieproject/{}/master/src/start.mierun'
+  file = (requests.get(mierun_file.format(module)))
+  if(file.status_code == 200):
+    _info('start mierun file for module: '+module)
+    for line in file.text.splitlines():
+      #yellow
+      print(colored('\r\n[mierun@module: {}]$ \r'.format(module),'yellow'))
+      subprocess.call(precmd+line, shell=True)
+  else:
+    _info('mierun file not exist for module: '+module)
+  
 
 def make_safe_filename(s):
     def safe_char(c):

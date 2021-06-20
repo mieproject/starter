@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding: utf-8
-import argparse, sys, re, requests
+import argparse, sys, re, requests,urllib
 from colorama import init
 from termcolor import colored
 # use Colorama to make init() Termcolor work on Windows too
@@ -19,16 +19,21 @@ parser.add_argument('--type', '-t', help="project type [web,api has also web]", 
 parser.add_argument('--auth', help="'y' if you need auth in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
 parser.add_argument('--run-npm', help="'y' if you need to run `npm install && npm run dev` in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
 # parser.add_argument('--packages','-p', help="all wanted packages separated by comma,", type= str)
-parser.add_argument('--modules','-m', help="all wanted modules separated by comma,", type= str,default="")
+parser.add_argument('--modules','-m', help="all wanted modules separated by comma,", type= str,default="settings")
 args=parser.parse_args()
 
 
 
 #init 
-
+packagist_path = 'https://packagist.org/packages/mieproject/'
+github_path = 'https://github.com/mieproject/'
 # datetime object containing current date and time
 
-    
+#test
+
+
+
+  
 # project init
 projects_path = args.project_path
 
@@ -49,11 +54,14 @@ def main():
     mie_helpers._info('['+mie_helpers.string_time()+'] create new laravel project')
     subprocess.call('composer create-project laravel/laravel '+pfolder+'', shell=True)
     subprocess.call(precmd+"composer install ", shell=True)
-    mie_helpers._info('start `install_packages`')
     install_packages()
     
 
+    #create DB && seed
+    subprocess.call(precmd+"php artisan migrate:refresh --seed", shell=True)
 
+
+    # open progect folder as interface (if `xdg-open is exist`
     if(subprocess.call(['which','xdg-open']) == 0):
       subprocess.call('xdg-open '+pfolder,shell=True)
     #end main    
@@ -61,17 +69,20 @@ def main():
 
 def install_packages():
   # check if this project need auth system
-  if(args.auth == 'y'):
+  # if(args.auth == 'y'):
+  if(True):
       subprocess.call(precmd+"composer require laravel/breeze --dev && php artisan breeze:install vue", shell=True)
       if(args.run_npm == 'y'):
         subprocess.call(precmd+"npm install && npm run dev", shell=True)
   
   if(args.modules != ''):
+    mie_helpers._info('start `install_packages`')
     modules_names = (args.modules).split(",")
     for module_name in modules_names:
       mie_helpers._info('['+mie_helpers.string_time()+'] install module:'+ module_name)
-      if(requests.get("https://packagist.org/packages/mieproject/"+module_name, allow_redirects=False).status_code == 200):
-        subprocess.call(precmd+"composer require mieproject/"+ module_name, shell=True)
+      if(requests.get(packagist_path+module_name, allow_redirects=False).status_code == 200):
+        subprocess.call(precmd+"composer require mieproject/{} dev-master".format(module_name), shell=True) # todo: remove  dev-master
+        mie_helpers.parse_mierun_file(module_name,precmd)
       else:
           mie_helpers._err('module "'+module_name+'" not exist')
           
