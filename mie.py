@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # coding: utf-8
-import argparse, sys, re, requests,urllib
+import argparse, requests,glob
+from pathlib import Path
+from typing import DefaultDict
 from colorama import init
 from termcolor import colored
 # use Colorama to make init() Termcolor work on Windows too
@@ -32,16 +34,31 @@ github_path = 'https://github.com/mieproject/'
 #test
 
 
-
   
 # project init
 projects_path = args.project_path
+default_modules = ['settings'];
+modules_names = ((args.modules).split(","))
+modules_names = list(set(default_modules) | set(modules_names))
 
+# prject info
 pname = args.project_name
 pfolder = projects_path+'/'+mie_helpers.make_safe_filename(pname)
+
+
+# mierun_files 
+HOME_PATH = str(Path('~').expanduser())
+str_glob_pattern = ('{}/vendor/mieproject/*/src/start.mierun'.format(pfolder)).replace('~',HOME_PATH)
+
+
+
+
 # pfolder = (pname)
 # cd to project 
 precmd = "cd "+pfolder+" && "
+
+#test
+
 
     
 def main(): 
@@ -55,36 +72,39 @@ def main():
     subprocess.call('composer create-project laravel/laravel '+pfolder+'', shell=True)
     subprocess.call(precmd+"composer install ", shell=True)
     install_packages()
-    
+
+    print('generate_mierun_file')
+    mierun_files = glob.glob(str_glob_pattern)
+    mie_helpers.generate_mierun_file(mierun_files,precmd)
 
     #create DB && seed
     subprocess.call(precmd+"php artisan migrate:refresh --seed", shell=True)
 
-
     # open progect folder as interface (if `xdg-open is exist`
-    if(subprocess.call(['which','xdg-open']) == 0):
-      subprocess.call('xdg-open '+pfolder,shell=True)
+    if(subprocess.call(['which','gnome-terminal']) == 0):
+      subprocess.call('gnome-terminal --working-directory={}'.format(pfolder),shell=True)
     #end main    
     #subprocess.call(precmd+"php artisan serv &&", shell=True) 
 
 def install_packages():
   # check if this project need auth system
   # if(args.auth == 'y'):
-  if(False): # no need becuse of `settings` module
+  if(False): # no need because of `settings` module
       subprocess.call(precmd+"composer require laravel/breeze --dev && php artisan breeze:install vue", shell=True)
       if(args.run_npm == 'y'):
         subprocess.call(precmd+"npm install && npm run dev", shell=True)
   
-  if(args.modules != ''):
+  if(modules_names != ''):
     mie_helpers._info('start `install_packages`')
-    modules_names = (args.modules).split(",")
     for module_name in modules_names:
       mie_helpers._info('['+mie_helpers.string_time()+'] install module:'+ module_name)
-      if(requests.get(packagist_path+module_name, allow_redirects=False).status_code == 200):
+      if(requests.get(packagist_path+module_name, allow_redirects=False).status_code == 200): # if module exist
         subprocess.call(precmd+"composer require mieproject/{} dev-master".format(module_name), shell=True) # todo: remove  dev-master
-        mie_helpers.parse_mierun_file(module_name,precmd)
       else:
           mie_helpers._err('module "{}" not exist'.format(module_name))
+
+
+
           
 
   # packages_names = (args.packages).split(",")

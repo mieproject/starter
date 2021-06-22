@@ -1,18 +1,43 @@
-import requests,subprocess
+import requests,subprocess,os.path,time,re
 from datetime import datetime
 from termcolor import colored
 
-def parse_mierun_file(module,precmd):
-  mierun_file = 'https://raw.githubusercontent.com/mieproject/{}/master/src/start.mierun'
-  file = (requests.get(mierun_file.format(module)))
-  if(file.status_code == 200):
-    _info('start mierun file for module: '+module)
-    for line in file.text.splitlines():
-      #yellow
-      print(colored('\r\n[mierun@module:{}]${} \r'.format(module,line),'yellow'))
-      subprocess.call(precmd+line, shell=True)
-  else:
-    _info('mierun file not exist for module: '+module)
+
+def generate_mierun_file(mierun_files,precmd,module = ''):
+  tmp_path = os.path.join('/tmp', 'mieproject_{}.mierun'.format(time.time()))
+  print("Creating one temporary file for .mierun ...",tmp_path)      
+  tmpf = open(tmp_path, "w+")
+  for mierun_file in mierun_files:
+    if(os.path.isfile(mierun_file)):
+      with open(mierun_file) as f:
+        lines = f.readlines()
+        for line in lines:
+          tmpf.write(line)
+
+          #   print(line) 
+    else:
+      _info('mierun file not exist for module: '+module)
+  tmpf.close()
+  parse_mierun_file(tmp_path,precmd)
+
+def parse_mierun_file(mierun_file,precmd,module = ''):
+  print(mierun_file,precmd)
+  with open(mierun_file) as f:
+    content = f.read()
+    print(content)
+
+    lines = re.split('&&|\n',content)
+    filtered_lines = []
+    for line in lines:
+      if(line.strip() != ""):
+        #yellow
+        print(colored('\r\n[mierun@module:{}]${} \r'.format(module,line),'yellow'))
+        subprocess.call(precmd+line, shell=True)
+        # filtered_lines.append(line.strip())
+        # filtered_lines.append(line)
+    # filtered_lines = list(dict.fromkeys(filtered_lines))
+    # print(filtered_lines)
+    
   
 
 def make_safe_filename(s):
