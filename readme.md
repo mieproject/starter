@@ -27,7 +27,7 @@ optional arguments:
                         project path
   --type TYPE, -t TYPE  project type [web,api has also web]
   --auth {y,n}          'y' if you need auth in ur project [y|n]
-  --run-npm {y,n}       'y' if you need to run `npm install && npm run dev` in
+  --run-npm {y,n}       'y' if you need to run `npm install && npm run dev` | todo: check it from mierun files
                         ur project [y|n]
   --modules MODULES, -m MODULES
                         all wanted modules separated by comma,

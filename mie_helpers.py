@@ -1,11 +1,27 @@
-import requests,subprocess,os.path,time,re
+import requests,subprocess,os.path,time,re,glob
 from datetime import datetime
 from termcolor import colored
 
 
-def generate_mierun_file(mierun_files,precmd,module = ''):
+def generate_mierun_file(mierun_files,precmd,str_glob_pattern,module = ''):
+  #sort mierun_files
+  mierun_sort = open('./mierun_sort', 'r')
+  mierun_sort_lines = mierun_sort.read().split()
+  mierun_sort_lines = [str_glob_pattern.replace('*',element) for element in mierun_sort_lines]
+  mierun_files_sorted = []
+  for i in mierun_sort_lines:
+    if i in mierun_files:
+      mierun_files_sorted.append(i)
+    temp3 = [item for item in mierun_files if item not in mierun_files_sorted]
+    mierun_files = mierun_files_sorted+temp3
+
+  #remove old temp files
+  tempfiles = glob.glob(os.path.join('/tmp', 'mieproject_*.mierun'))
+  for f in tempfiles:
+      os.remove(f)
+  # create a temp file
   tmp_path = os.path.join('/tmp', 'mieproject_{}.mierun'.format(time.time()))
-  print("Creating one temporary file for .mierun ...",tmp_path)      
+  print("Creating one temporary file for .mierun ...",tmp_path)
   tmpf = open(tmp_path, "w+")
   for mierun_file in mierun_files:
     if(os.path.isfile(mierun_file)):
@@ -14,7 +30,7 @@ def generate_mierun_file(mierun_files,precmd,module = ''):
         for line in lines:
           tmpf.write(line)
 
-          #   print(line) 
+          #   print(line)
     else:
       _info('mierun file not exist for module: '+module)
   tmpf.close()
@@ -37,8 +53,8 @@ def parse_mierun_file(mierun_file,precmd,module = ''):
         # filtered_lines.append(line)
     # filtered_lines = list(dict.fromkeys(filtered_lines))
     # print(filtered_lines)
-    
-  
+
+
 
 def make_safe_filename(s):
     def safe_char(c):
@@ -58,7 +74,7 @@ def make_safe_filename(s):
       if not last_safe or not curr_safe:
         safe += safe_c
       last_safe=curr_safe
-    return safe   
+    return safe
 
 def string_time():
   now = datetime.now()

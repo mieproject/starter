@@ -21,12 +21,12 @@ parser.add_argument('--type', '-t', help="project type [web,api has also web]", 
 # parser.add_argument('--auth', help="'y' if you need auth in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
 parser.add_argument('--run-npm', help="'y' if you need to run `npm install && npm run dev` in ur project [y|n]",choices=['y', 'n'], type= str,default="y")
 # parser.add_argument('--packages','-p', help="all wanted packages separated by comma,", type= str)
-parser.add_argument('--modules','-m', help="all wanted modules separated by comma,", type= str,default="settings")
+parser.add_argument('--modules','-m', help="all wanted modules separated by comma,", type= str)
 args=parser.parse_args()
 
 
 
-#init 
+#init
 packagist_path = 'https://packagist.org/packages/mieproject/'
 github_path = 'https://github.com/mieproject/'
 # datetime object containing current date and time
@@ -34,19 +34,20 @@ github_path = 'https://github.com/mieproject/'
 #test
 
 
-  
+
 # project init
 projects_path = args.project_path
-default_modules = ['settings'];
-modules_names = ((args.modules).split(","))
+default_modules = ['project-initialization'];
+modules_names = []
+if((args.modules) != None): modules_names = (args.modules).split(",")
 modules_names = list(set(default_modules) | set(modules_names))
 
-# prject info
+# project info
 pname = args.project_name
 pfolder = projects_path+'/'+mie_helpers.make_safe_filename(pname)
 
 
-# mierun_files 
+# mierun_files
 HOME_PATH = str(Path('~').expanduser())
 str_glob_pattern = ('{}/vendor/mieproject/*/src/start.mierun'.format(pfolder)).replace('~',HOME_PATH)
 
@@ -54,28 +55,29 @@ str_glob_pattern = ('{}/vendor/mieproject/*/src/start.mierun'.format(pfolder)).r
 
 
 # pfolder = (pname)
-# cd to project 
+# cd to project
 precmd = "cd "+pfolder+" && "
 
 #test
 
 
-    
-def main(): 
+
+def main():
     # info:
     print(colored("- Project Name:"+pfolder, 'blue'))
     print(colored("- Project type:"+args.type, 'blue'))
     # start
-    
-    
+
+
+
     mie_helpers._info('['+mie_helpers.string_time()+'] create new laravel project')
     subprocess.call('composer create-project laravel/laravel '+pfolder+'', shell=True)
     subprocess.call(precmd+"composer install ", shell=True)
-    install_packages()
+    #install_packages()
 
     print('generate_mierun_file')
     mierun_files = glob.glob(str_glob_pattern)
-    mie_helpers.generate_mierun_file(mierun_files,precmd)
+    mie_helpers.generate_mierun_file(mierun_files,precmd,str_glob_pattern)
 
     #create DB && seed
     subprocess.call(precmd+"php artisan migrate:refresh --seed", shell=True)
@@ -83,8 +85,8 @@ def main():
     # open progect folder as interface (if `xdg-open is exist`
     if(subprocess.call(['which','gnome-terminal']) == 0):
       subprocess.call('gnome-terminal --working-directory={}'.format(pfolder),shell=True)
-    #end main    
-    #subprocess.call(precmd+"php artisan serv &&", shell=True) 
+    #end main
+    #subprocess.call(precmd+"php artisan serv &&", shell=True)
 
 def install_packages():
   # check if this project need auth system
@@ -93,7 +95,7 @@ def install_packages():
       subprocess.call(precmd+"composer require laravel/breeze --dev && php artisan breeze:install vue", shell=True)
       if(args.run_npm == 'y'):
         subprocess.call(precmd+"npm install && npm run dev", shell=True)
-  
+
   if(modules_names != ''):
     mie_helpers._info('start `install_packages`')
     for module_name in modules_names:
@@ -105,19 +107,19 @@ def install_packages():
 
 
 
-          
+
 
   # packages_names = (args.packages).split(",")
   # print(packages_names)
   # for package_name in packages_names:
     # subprocess.call(precmd+"composer require "+ package_name, shell=True)
-  
 
 
-  
 
-    
- 
+
+
+
+
 main()
 
 
