@@ -48,3 +48,6 @@ Created project in /home/anskal/mieprojects/blog
 Loading composer repositories with package information
 
 ```
+
+# Todo
+- [ ] stable it `dev-master`  
