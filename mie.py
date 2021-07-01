@@ -71,8 +71,8 @@ def main():
 
 
     mie_helpers._info('['+mie_helpers.string_time()+'] create new laravel project')
-    subprocess.call('composer create-project laravel/laravel '+pfolder+'', shell=True)
-    subprocess.call(precmd+"composer install ", shell=True)
+    subprocess.call('composer create-project laravel/laravel '+pfolder+' ', shell=True)
+    subprocess.call(precmd+"composer update ", shell=True)
     install_packages()
 
     print('generate_mierun_file')
@@ -84,7 +84,7 @@ def main():
 
     # open progect folder as interface (if `xdg-open is exist`
     if(subprocess.call(['which','gnome-terminal']) == 0):
-      subprocess.call('gnome-terminal --working-directory="{}"'.format(pfolder),shell=True)
+      subprocess.call('gnome-terminal --working-directory={}'.format(pfolder).replace('~',HOME_PATH),shell=True)
     #end main
     #subprocess.call(precmd+"php artisan serv &&", shell=True)
 
@@ -101,7 +101,7 @@ def install_packages():
     for module_name in modules_names:
       mie_helpers._info('['+mie_helpers.string_time()+'] install module:'+ module_name)
       if(requests.get(packagist_path+module_name, allow_redirects=False).status_code == 200): # if module exist
-        subprocess.call(precmd+"composer require mieproject/{} dev-master".format(module_name), shell=True) # todo: remove  dev-master
+        subprocess.call(precmd+"composer require mieproject/{} dev-master --with-all-dependencies".format(module_name), shell=True) # todo: remove  dev-master
       else:
         mie_helpers._err('module "{}" not exist'.format(module_name))
 
