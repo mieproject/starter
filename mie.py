@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # coding: utf-8
-import argparse, requests,glob
+import argparse, requests,glob,sys,os
+from numpy import random
 from pathlib import Path
 from typing import DefaultDict
 from colorama import init
@@ -10,8 +11,6 @@ init()
 import mie_helpers
 # to run BASH cmds
 import subprocess
-
-
 
 parser=argparse.ArgumentParser()
 
@@ -61,32 +60,52 @@ precmd = "cd "+pfolder+" && "
 #test
 
 
-
 def main():
-    # info:
-    print(colored("- Project Name:"+pfolder, 'blue'))
-    print(colored("- Project type:"+args.type, 'blue'))
-    # start
+  subprocess.call('composer create-project laravel/laravel '+pfolder+' ', shell=True)
+  #sys.stdout=open(os.path.join(os.path.expanduser(pfolder), 'creation.log'),"wt") # log every thing
+  mie_helpers._info('[{}] create new laravel project'.format(mie_helpers.string_time()))
+
+
+  # info:
+  print(colored("- Project Name:"+pname, 'blue'))
+  print(colored("- Project Path:"+pfolder, 'blue'))
+  print(colored("- Project type:"+args.type, 'blue'))
+  # start
+  
+  dbname = pname+'_'+str(random.randint(999,9999))
+  db_config = mie_helpers.create_DB(dbname)
+  
 
 
 
-    mie_helpers._info('['+mie_helpers.string_time()+'] create new laravel project')
-    subprocess.call('composer create-project laravel/laravel '+pfolder+' ', shell=True)
-    subprocess.call(precmd+"composer update ", shell=True)
-    install_packages()
 
-    print('generate_mierun_file')
-    mierun_files = glob.glob(str_glob_pattern)
-    mie_helpers.generate_mierun_file(mierun_files,precmd,str_glob_pattern)
 
-    #create DB && seed
-    subprocess.call(precmd+"php artisan migrate:fresh --seed", shell=True)
+  mie_helpers._info('[{}] edit `.env` file'.format(mie_helpers.string_time()))  
+  mie_helpers.editEnv(pfolder,'APP_NAME',pname)
+  mie_helpers.editEnv(pfolder,'DB_DATABASE',dbname)
+  mie_helpers.editEnv(pfolder,'DB_USERNAME',db_config['user'])
+  mie_helpers.editEnv(pfolder,'DB_PASSWORD',db_config['password'])
 
-    # open progect folder as interface (if `xdg-open is exist`
-    if(subprocess.call(['which','gnome-terminal']) == 0):
-      subprocess.call('gnome-terminal --working-directory={}'.format(pfolder).replace('~',HOME_PATH),shell=True)
-    #end main
-    #subprocess.call(precmd+"php artisan serv &&", shell=True)
+    
+
+
+  subprocess.call(precmd+"composer update ", shell=True)
+  install_packages()
+  
+  
+  
+  print('[{}] generate_mierun_file'.format(mie_helpers.string_time()))
+  mierun_files = glob.glob(str_glob_pattern)
+  mie_helpers.generate_mierun_file(mierun_files,precmd,str_glob_pattern)
+
+  #create DB && seed
+  subprocess.call(precmd+"php artisan migrate:refresh --seed", shell=True)
+
+  # open progect folder as interface (if `xdg-open is exist`
+  if(subprocess.call(['which','gnome-terminal']) == 0):
+    subprocess.call('gnome-terminal --working-directory={}'.format(pfolder).replace('~',HOME_PATH),shell=True)
+  #end main
+  #subprocess.call(precmd+"php artisan serv &&", shell=True)
 
 def install_packages():
   # check if this project need auth system
@@ -112,10 +131,5 @@ def install_packages():
 
 
 
-
-
 main()
-
-
-
-
+#sys.stdout.close()

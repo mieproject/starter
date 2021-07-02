@@ -1,4 +1,6 @@
-import requests,subprocess,os.path,time,re,glob
+import requests,subprocess,os.path,time,re,glob,json
+import mysql.connector
+import dotenv
 from datetime import datetime
 from termcolor import colored
 
@@ -56,6 +58,7 @@ def parse_mierun_file(mierun_file,precmd,module = ''):
 
 
 
+
 def make_safe_filename(s):
     def safe_char(c):
         if c.isalnum() or c=='.':
@@ -75,6 +78,54 @@ def make_safe_filename(s):
         safe += safe_c
       last_safe=curr_safe
     return safe
+
+
+
+def create_DB(db_name):
+  _info('Crataing DB [IF NOT EXISTS] for project with name {} '.format(db_name))
+  # Opening JSON file
+  f = open('config/db.json',)
+  # returns JSON object as 
+  # a dictionary
+  db_config = json.load(f)    
+  # Closing file
+  f.close()
+
+  mydb = mysql.connector.connect(
+    host=db_config['host'],
+    user=db_config['user'],
+    password=db_config['password']
+  )
+
+  mycursor = mydb.cursor()
+
+  mycursor.execute("CREATE DATABASE IF NOT EXISTS `{}`;".format(db_name))
+  _info('DB `{}` has been created'.format(db_name))
+  return db_config
+
+
+def editEnv(project_folder,key,value):
+  dotenv_file = os.path.join(os.path.expanduser(project_folder), '.env')
+  if os.path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
+
+    _info('[{}] edit .env `{}`'.format(string_time(),key))
+    if key in os.environ:
+      print('OldValue: { "'+key+'":"'+os.environ[key]+'"  } ') 
+    os.environ[key] = value
+    print('NewValue: { "'+key+'":"'+os.environ[key]+'"  } ')
+
+    # Write changes to .env file.
+    return dotenv.set_key(dotenv_file, key, os.environ[key])
+  elif os.path.isdir(os.path.expanduser(project_folder)) == False:
+    _err('project or .env file not exist file')
+    exit()
+    
+
+
+
+
+  
 
 def string_time():
   now = datetime.now()
